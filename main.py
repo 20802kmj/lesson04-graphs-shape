@@ -378,6 +378,57 @@ try:
         "개봉일 스크린 수와 총 관객의 관계를 살펴보면서 "
         "첫 주 관객이 많은 영화일수록 버블이 크게 나타나는 것을 함께 확인할 수 있습니다."
     )
+    st.divider()
+
+    # ---------------------------------------------------------
+    # 그래프 7. 제작 국가 → 장르 선버스트
+    # ---------------------------------------------------------
+    st.subheader("7. 제작 국가별 장르 구성")
+
+    sunburst_df = df.dropna(
+        subset=["nation", "genre", "movieNm"]
+    ).copy()
+
+    # 제작 국가와 장르별 영화 편수 집계
+    sunburst_counts = (
+        sunburst_df
+        .groupby(["nation", "genre"])
+        .size()
+        .reset_index(name="movie_count")
+    )
+
+    fig7 = px.sunburst(
+        sunburst_counts,
+        path=["nation", "genre"],
+        values="movie_count",
+        title="제작 국가 → 장르별 영화 구성",
+        labels={
+            "nation": "제작 국가",
+            "genre": "장르",
+            "movie_count": "영화 편수",
+        },
+    )
+
+    fig7.update_traces(
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "영화 편수: %{value}편"
+            "<extra></extra>"
+        ),
+        textinfo="label+percent parent",
+    )
+
+    fig7.update_layout(
+        margin=dict(t=60, b=20, l=20, r=20),
+    )
+
+    st.plotly_chart(fig7, use_container_width=True)
+
+    st.info(
+        "이 그래프로 알 수 있는 것: "
+        "제작 국가별로 어떤 장르의 영화가 많이 만들어졌는지와 "
+        "각 국가 안에서 장르가 차지하는 비중을 한눈에 비교할 수 있습니다."
+    )
 
 except Exception as e:
     st.error("데이터를 불러오는 중 문제가 발생했습니다.")
