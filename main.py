@@ -429,6 +429,63 @@ try:
         "제작 국가별로 어떤 장르의 영화가 많이 만들어졌는지와 "
         "각 국가 안에서 장르가 차지하는 비중을 한눈에 비교할 수 있습니다."
     )
+    st.divider()
+
+    # ---------------------------------------------------------
+    # 그래프 8. 장르별 최고 흥행 영화
+    # ---------------------------------------------------------
+    st.subheader("8. 장르별 최고 흥행 영화")
+
+    top_by_genre_df = df.dropna(
+        subset=["genre", "movieNm", "total_audi"]
+    ).copy()
+
+    # 각 장르에서 총 관객이 가장 많은 영화 1편 선택
+    top_by_genre = (
+        top_by_genre_df
+        .loc[
+            top_by_genre_df.groupby("genre")["total_audi"].idxmax()
+        ]
+        .sort_values("total_audi", ascending=True)
+    )
+
+    fig8 = px.bar(
+        top_by_genre,
+        x="total_audi",
+        y="genre",
+        orientation="h",
+        text="movieNm",
+        title="장르별 최고 흥행 영화",
+        labels={
+            "total_audi": "총 관객 수",
+            "genre": "장르",
+            "movieNm": "영화",
+        },
+    )
+
+    fig8.update_traces(
+        textposition="outside",
+        hovertemplate=(
+            "<b>%{text}</b><br>"
+            "장르: %{y}<br>"
+            "총 관객: %{x:,}명"
+            "<extra></extra>"
+        ),
+    )
+
+    fig8.update_layout(
+        xaxis_title="총 관객 수",
+        yaxis_title="장르",
+        margin=dict(t=60, b=20, l=20, r=100),
+    )
+
+    st.plotly_chart(fig8, use_container_width=True)
+
+    st.info(
+        "이 그래프로 알 수 있는 것: "
+        "각 장르에서 총 관객 수가 가장 많은 영화를 비교하면 "
+        "장르별 최고 흥행작의 관객 규모를 한눈에 볼 수 있습니다."
+    )
 
 except Exception as e:
     st.error("데이터를 불러오는 중 문제가 발생했습니다.")
