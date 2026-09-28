@@ -243,6 +243,67 @@ try:
 
     st.info("이 그래프로 알 수 있는 것: ________________________________")
 
+    st.divider()
+
+    # ---------------------------------------------------------
+    # 그래프 5. 장르별 총 관객 박스플롯
+    # ---------------------------------------------------------
+    st.subheader("5. 장르별 총 관객 분포")
+
+    boxplot_df = df.dropna(
+        subset=["genre", "movieNm", "total_audi"]
+    ).copy()
+
+    # 영화가 10편 이상인 장르만 선택
+    genre_movie_counts = boxplot_df["genre"].value_counts()
+
+    selected_genres = genre_movie_counts[
+        genre_movie_counts >= 10
+    ].index
+
+    boxplot_df = boxplot_df[
+        boxplot_df["genre"].isin(selected_genres)
+    ].copy()
+
+    fig5 = px.box(
+        boxplot_df,
+        x="genre",
+        y="total_audi",
+        points="outliers",
+        hover_name="movieNm",
+        title="영화가 10편 이상인 장르의 총 관객 분포",
+        labels={
+            "genre": "장르",
+            "total_audi": "총 관객 수",
+        },
+    )
+
+    fig5.update_traces(
+        marker=dict(
+            size=8,
+            color="#636EFA",
+        ),
+        hovertemplate=(
+            "<b>%{hovertext}</b><br>"
+            "총 관객: %{y:,}명"
+            "<extra></extra>"
+        ),
+    )
+
+    fig5.update_layout(
+        xaxis_title="장르",
+        yaxis_title="총 관객 수",
+        margin=dict(t=60, b=20, l=20, r=20),
+    )
+
+    st.plotly_chart(fig5, use_container_width=True)
+
+    st.info(
+        "이 그래프로 알 수 있는 것: 영화가 10편 이상인 장르만 비교하면 "
+        "장르별 총 관객의 중앙값과 분포, 그리고 다른 영화와 비교해 "
+        "특히 관객이 많은 영화(이상치)를 확인할 수 있습니다."
+    )
+
 except Exception as e:
     st.error("데이터를 불러오는 중 문제가 발생했습니다.")
     st.exception(e)
