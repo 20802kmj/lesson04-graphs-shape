@@ -28,8 +28,9 @@ def load_data():
         .str.strip()
     )
 
-    # 총 관객을 숫자로 변환
+    # 숫자형 데이터로 변환
     df["total_audi"] = pd.to_numeric(df["total_audi"], errors="coerce")
+    df["first_scrn"] = pd.to_numeric(df["first_scrn"], errors="coerce")
 
     return df
 
@@ -128,7 +129,6 @@ try:
         subset=["movieNm", "total_audi"]
     ).copy()
 
-    # 10개의 동일한 구간으로 나누어 가장 영화가 많이 몰린 구간을 계산
     min_audi = histogram_df["total_audi"].min()
     max_audi = histogram_df["total_audi"].max()
 
@@ -136,7 +136,6 @@ try:
         bins = 1
         histogram_df["audience_bin"] = "동일한 관객 수"
         most_common_bin = "동일한 관객 수"
-        most_common_count = len(histogram_df)
     else:
         bins = 10
 
@@ -146,9 +145,13 @@ try:
             include_lowest=True,
         )
 
-        bin_counts = histogram_df["audience_bin"].value_counts().sort_index()
+        bin_counts = (
+            histogram_df["audience_bin"]
+            .value_counts()
+            .sort_index()
+        )
+
         most_common_bin = bin_counts.idxmax()
-        most_common_count = bin_counts.max()
 
     fig3 = px.histogram(
         histogram_df,
@@ -177,7 +180,6 @@ try:
 
     st.plotly_chart(fig3, use_container_width=True)
 
-    # 가장 관객이 많은 영화
     top_movie = histogram_df.loc[
         histogram_df["total_audi"].idxmax()
     ]
@@ -191,6 +193,55 @@ try:
         f"가장 관객이 많은 영화는 **{top_movie_name}**으로 "
         f"총 관객은 **{top_movie_audience:,}명**입니다."
     )
+
+    st.divider()
+
+    # ---------------------------------------------------------
+    # 그래프 4. 개봉일 스크린 수와 총 관객의 관계
+    # ---------------------------------------------------------
+    st.subheader("4. 개봉일 스크린 수와 총 관객의 관계")
+
+    scatter_df = df.dropna(
+        subset=["movieNm", "genre", "first_scrn", "total_audi"]
+    ).copy()
+
+    fig4 = px.scatter(
+        scatter_df,
+        x="first_scrn",
+        y="total_audi",
+        color="genre",
+        hover_name="movieNm",
+        title="개봉일 스크린 수와 총 관객",
+        labels={
+            "first_scrn": "개봉일 스크린 수",
+            "total_audi": "총 관객 수",
+            "genre": "장르",
+        },
+    )
+
+    fig4.update_traces(
+        marker=dict(
+            size=9,
+            opacity=0.75,
+        ),
+        hovertemplate=(
+            "<b>%{hovertext}</b><br>"
+            "개봉일 스크린 수: %{x:,}개<br>"
+            "총 관객: %{y:,}명"
+            "<extra></extra>"
+        ),
+    )
+
+    fig4.update_layout(
+        xaxis_title="개봉일 스크린 수",
+        yaxis_title="총 관객 수",
+        legend_title="장르",
+        margin=dict(t=60, b=20, l=20, r=20),
+    )
+
+    st.plotly_chart(fig4, use_container_width=True)
+
+    st.info("이 그래프로 알 수 있는 것: ________________________________")
 
 except Exception as e:
     st.error("데이터를 불러오는 중 문제가 발생했습니다.")
